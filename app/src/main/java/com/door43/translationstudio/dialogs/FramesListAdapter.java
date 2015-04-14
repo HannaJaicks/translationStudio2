@@ -64,6 +64,7 @@ public class FramesListAdapter  extends BaseAdapter {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.fragment_frame_reader_list_item, null);
             holder.text = (TextView)v.findViewById(R.id.text);
+            holder.title = (TextView)v.findViewById(R.id.title);
             v.setTag(holder);
         } else {
             holder = (ViewHolder)v.getTag();
@@ -80,6 +81,7 @@ public class FramesListAdapter  extends BaseAdapter {
                 break;
             case SOURCE_TRANSLATION:
             default:
+                holder.title.setText(getItem(position).getTitle());
                 holder.text.setText(new USXRenderer().render(getItem(position).getText()));
         }
 
@@ -91,18 +93,22 @@ public class FramesListAdapter  extends BaseAdapter {
             // use english as default
             typeface = AppContext.graphiteTypeface(AppContext.projectManager().getLanguage("en"));
         }
+        holder.title.setTypeface(typeface, 0);
         holder.text.setTypeface(typeface, 0);
 
         // set font size
         float fontsize = AppContext.typefaceSize();
-        holder.text.setTextSize((fontsize));
+        holder.title.setTextSize(fontsize);
+        holder.text.setTextSize(fontsize);
 
         // color selection
         if(getItem(position).isSelected() && mIndicateSelected) {
             v.setBackgroundColor(mContext.getResources().getColor(R.color.blue));
+            holder.title.setTextColor(Color.WHITE);
             holder.text.setTextColor(Color.WHITE);
         } else {
             v.setBackgroundColor(Color.TRANSPARENT);
+            holder.title.setTextColor(mContext.getResources().getColor(R.color.black));
             holder.text.setTextColor(mContext.getResources().getColor(R.color.black));
         }
         return v;
@@ -122,5 +128,6 @@ public class FramesListAdapter  extends BaseAdapter {
      */
     private static class ViewHolder {
         public TextView text;
+        public TextView title;
     }
 }
