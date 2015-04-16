@@ -34,6 +34,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 
+import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -162,62 +163,6 @@ public class MainActivity extends TranslatorBaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //To enlarge source and translation
-        enlarge=(Button) findViewById(R.id.enlarge);
-
-        enlarge.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                PopupMenu popup = new PopupMenu(MainActivity.this, v);
-                popup.getMenuInflater().inflate(R.menu.popup, popup.getMenu());
-
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        Project p = AppContext.projectManager().getSelectedProject();
-                        if(p != null && p.getSelectedChapter() != null)  {
-                            // save the current translation
-                            save();
-
-                            // move other dialogs to backstack
-                            FragmentTransaction ft = getFragmentManager().beginTransaction();
-                            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-                            if (prev != null) {
-                                ft.remove(prev);
-                            }
-                            ft.addToBackStack(null);
-
-                            // Create the dialog
-                            FramesReaderDialog newFragment = new FramesReaderDialog();
-                            Bundle args = new Bundle();
-                            args.putString(FramesReaderDialog.ARG_PROJECT_ID, p.getId());
-                            args.putString(FramesReaderDialog.ARG_CHAPTER_ID, p.getSelectedChapter().getId());
-
-                            // configure display option
-                            switch(item.getItemId()) {
-                                case R.id.targetText:
-                                    args.putInt(FramesReaderDialog.ARG_DISPLAY_OPTION_ORDINAL, FramesListAdapter.DisplayOption.TARGET_TRANSLATION.ordinal());
-                                    break;
-                                case R.id.sourceText:
-                                default:
-                                    args.putInt(FramesReaderDialog.ARG_DISPLAY_OPTION_ORDINAL, FramesListAdapter.DisplayOption.SOURCE_TRANSLATION.ordinal());
-                            }
-
-                            // display dialog
-                            newFragment.setArguments(args);
-                            newFragment.show(ft, "dialog");
-                        } else {
-                            // the chapter is not selected
-                            return false;
-                        }
-                        return true;
-                    }
-                });
-                popup.show();
-            }
-        });
 
         if(savedInstanceState != null) {
             mSourceScrollY = savedInstanceState.getInt(STATE_SOURCE_SCROLL_Y, 0);
@@ -312,6 +257,20 @@ public class MainActivity extends TranslatorBaseActivity {
 
         initPanes();
 
+        //To enlarge source and translation
+        enlarge = (Button) findViewById(R.id.enlarge);
+
+        if(!frameIsSelected()){
+
+            enlarge.setVisibility(View.INVISIBLE);
+        }
+       else if(frameIsSelected())
+        {
+           ButtonEnlarge();
+        }
+
+
+
         if(AppContext.projectManager().getSelectedProject() != null && AppContext.projectManager().getSelectedProject().getSelectedChapter() == null) {
             // the project contains no chapters for the current language
             Intent languageIntent = new Intent(me, LanguageSelectorActivity.class);
@@ -331,8 +290,68 @@ public class MainActivity extends TranslatorBaseActivity {
                 }
             }
             reloadCenterPane();
+
         }
         closeKeyboard();
+    }
+
+    //Method to show enlarge button and show all source and translation
+    private void ButtonEnlarge()
+    {
+        enlarge.setVisibility(View.VISIBLE);
+        enlarge.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                PopupMenu popup = new PopupMenu(MainActivity.this, v);
+                popup.getMenuInflater().inflate(R.menu.popup, popup.getMenu());
+
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        Project p = AppContext.projectManager().getSelectedProject();
+                        if (p != null && p.getSelectedChapter() != null) {
+                            // save the current translation
+                            save();
+
+                            // move other dialogs to backstack
+                            FragmentTransaction ft = getFragmentManager().beginTransaction();
+                            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+                            if (prev != null) {
+                                ft.remove(prev);
+                            }
+                            ft.addToBackStack(null);
+
+                            // Create the dialog
+                            FramesReaderDialog newFragment = new FramesReaderDialog();
+                            Bundle args = new Bundle();
+                            args.putString(FramesReaderDialog.ARG_PROJECT_ID, p.getId());
+                            args.putString(FramesReaderDialog.ARG_CHAPTER_ID, p.getSelectedChapter().getId());
+
+                            // configure display option
+                            switch (item.getItemId()) {
+                                case R.id.targetText:
+                                    args.putInt(FramesReaderDialog.ARG_DISPLAY_OPTION_ORDINAL, FramesListAdapter.DisplayOption.TARGET_TRANSLATION.ordinal());
+                                    break;
+                                case R.id.sourceText:
+                                default:
+                                    args.putInt(FramesReaderDialog.ARG_DISPLAY_OPTION_ORDINAL, FramesListAdapter.DisplayOption.SOURCE_TRANSLATION.ordinal());
+                            }
+
+                            // display dialog
+                            newFragment.setArguments(args);
+                            newFragment.show(ft, "dialog");
+                        } else {
+                            // the chapter is not selected
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                popup.show();
+            }
+        });
     }
 
 
@@ -856,6 +875,7 @@ public class MainActivity extends TranslatorBaseActivity {
             public void onClick(View view) {
                 if (mSourceText.getText().length() == 0) {
                     openLeftDrawer();
+
                 }
             }
         });
@@ -1297,6 +1317,7 @@ public class MainActivity extends TranslatorBaseActivity {
             mTranslationEditText.setEnabled(true);
             final int frameIndex = p.getSelectedChapter().getFrameIndex(mSelectedFrame);
             final Chapter chapter = p.getSelectedChapter();
+            ButtonEnlarge();
 
             // get the target language
             if(!p.hasChosenTargetLanguage()) {

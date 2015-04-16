@@ -111,7 +111,8 @@
                                 android:background="@drawable/round_button"
                                 android:focusable="true"
                                 android:clickable="true"
-                                android:layout_marginLeft="10dp" />
+                                android:layout_marginLeft="10dp"
+                                android:visibility="invisible"/>
 
                         </RelativeLayout>
 
